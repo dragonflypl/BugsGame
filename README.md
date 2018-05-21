@@ -54,6 +54,46 @@ export class HomePage {
 }
 ```
 
+4. Przycisk start, stop, rysownie obszarów i robaka (`git checkout v3.0-Game-start)
+
+- nowy przyciski na stronie głównej
+
+``` html
+<!-- home.html -->
+<button ion-button block *ngIf="!trackerTask?.inRunning()" (click)="start()">Start</button>
+<button ion-button block color="danger" *ngIf="trackerTask?.inRunning()" (click)="stop()">Stop</button>
+```
+
+I kod który rozpoczyna grę:
+
+``` typescript
+// home.ts
+onStop = (score) => {
+  this.trackerTask.stop();
+  alert(`Game finished, your score ${score}`);
+}
+
+stop = () => {
+  this.game.stop();
+}
+
+start() {
+  this.game = new Game(this.gameUI, this.onStop);
+  this.game.start();
+  this.trackerTask.run();
+}
+```
+
+- nowa klasa `Game` która:
+   - losuje pozycję robaka co dany interwał
+   - odlicza ile robaków pozostało do końca gry
+- klasa `GameUI` ma nowe metody:
+   - `drawBug` rysuje robaka
+   - `buildSections` rysuje sekcje
+
+
 ## TODO:
 
 - Obczaj: Get Ionic DevApp for easy device testing: https://bit.ly/ionic-dev-app
+- `ionic serve -l --port 8200`
+- replace tag: `git tag -fa <tagname>`
