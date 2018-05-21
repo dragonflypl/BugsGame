@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import { GameUI } from '../GameUI';
+import { VideoTracker } from '../VideoTracker';
 
 @Component({
   selector: 'page-home',
@@ -7,8 +8,13 @@ import { NavController } from 'ionic-angular';
 })
 export class HomePage {
 
-  constructor(public navCtrl: NavController) {
+  gameUI = new GameUI();
+  videoTracker = new VideoTracker();
+  trackerTask = null;
 
+  ionViewDidLoad() {
+    this.gameUI.init().then(() => {
+      this.trackerTask = this.videoTracker.initialize();
+    })
   }
-
 }
