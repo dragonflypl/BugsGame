@@ -7,4 +7,10 @@ page-home {
     top: 0;
     left: 0;
   }
+  #colorPickerCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+  }
 }

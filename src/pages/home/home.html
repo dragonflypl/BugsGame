@@ -8,7 +8,13 @@
   <div id="game">
     <video id="video" width="100%" preload autoplay loop muted controls></video>
     <canvas id="videoCanvas" width="{{gameUI.width}}" height="{{gameUI.height}}"></canvas>
+    <canvas id="colorPickerCanvas" width="{{gameUI.width}}" height="{{gameUI.height}}"></canvas>
   </div>
-  <button ion-button block *ngIf="!trackerTask?.inRunning()" (click)="start()">Start</button>
-  <button ion-button block color="danger" *ngIf="trackerTask?.inRunning()" (click)="stop()">Stop</button>
+  <ion-item>
+    Tracked color:
+    <span [ngStyle]="{'background-color': videoTracker.hexColor}">&nbsp;&nbsp;&nbsp;</span>
+    <ion-badge item-end>{{videoTracker.hexColor}}</ion-badge>
+  </ion-item>
+  <button ion-button block *ngIf="game && !game.inProgress" (click)="start()">Start</button>
+  <button ion-button block color="danger" *ngIf="game && game.inProgress" (click)="stop()">Stop</button>
 </ion-content>

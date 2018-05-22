@@ -35,6 +35,10 @@ export class GameUI {
 
   public calibration = 0;
 
+  private get colorPickerContext() {
+    return this.colorPickerCanvas.getContext('2d');
+  }
+
   private get videoContext() {
     return this.videoCanvas.getContext('2d');
   }
@@ -57,6 +61,49 @@ export class GameUI {
 
   clear() {
     this.videoContext.clearRect(0, 0, this.width, this.height);
+  }
+
+
+  toSection(match: Match): BugSectionInfo {
+
+    const matchRectangle = {
+      x1: match.x,
+      y1: match.y,
+      x2: match.x + match.width,
+      y2: match.y + match.height
+    }
+
+    for (let sectionX = 0; sectionX < this.numSections; sectionX++) {
+      for (let sectionY = 0; sectionY < this.numSections; sectionY++) {
+        const sectionRectangle = {
+          x1: this.sectionSize * sectionX + this.widthOffset,
+          y1: this.sectionSize * sectionY + this.heightOffset,
+          x2: this.sectionSize * (sectionX + 1) + this.widthOffset,
+          y2: this.sectionSize * (sectionY + 1) + this.heightOffset
+        }
+
+        if (matchRectangle.x1 >= sectionRectangle.x1 &&
+          matchRectangle.y1 >= sectionRectangle.y1 &&
+          matchRectangle.x2 <= sectionRectangle.x2 &&
+          matchRectangle.y2 <= sectionRectangle.y2
+        ) {
+          return new BugSectionInfo(sectionX, sectionY);
+        }
+      }
+    }
+    return BugSectionInfo.NULL;
+  }
+
+  drawMatch(match: Match) {
+    const matchSection = this.toSection(match);
+    this.videoContext.strokeStyle = '#FFF';
+    this.videoContext.strokeRect(match.x, match.y, match.width, match.height);
+    if (matchSection.sectionX >= 0 && matchSection.sectionY >= 0) {
+      this.videoContext.font = '11px Helvetica';
+      this.videoContext.fillStyle = "#fff";
+      this.videoContext.fillText('x: ' + match.x + 'px ' + matchSection.sectionX, match.x + match.width + 5, match.y + 11);
+      this.videoContext.fillText('y: ' + match.y + 'px ' + matchSection.sectionY, match.x + match.width + 5, match.y + 22);
+    }
   }
 
   drawBug = (bugSectionInfo: BugSectionInfo) => {
@@ -145,6 +192,10 @@ export class GameUI {
     return document.getElementById('video') as HTMLVideoElement;
   }
 
+  private get colorPickerCanvas() {
+    return document.getElementById('colorPickerCanvas') as HTMLCanvasElement
+  }
+
   private get videoCanvas() {
     return document.getElementById('videoCanvas') as HTMLCanvasElement
   }
@@ -159,10 +210,31 @@ export class GameUI {
     return style && parseFloat(style.height.replace('px', ''));
   }
 
-  init() {
+  findPos(obj) {
+    var curleft = 0, curtop = 0;
+    if (obj.offsetParent) {
+      do {
+        curleft += obj.offsetLeft;
+        curtop += obj.offsetTop;
+      } while (obj = obj.offsetParent);
+      return { x: curleft, y: curtop };
+    }
+    return undefined;
+  }
+
+  init(onColorChange) {
     if (this.bugImage) {
       return Promise.resolve({});
     }
+
+    this.videoCanvas.addEventListener('click', (e) => {
+      this.colorPickerContext.drawImage(this.video, 0, 0, this.videoCanvas.width, this.videoCanvas.height);
+      var pos = this.findPos(this.videoCanvas);
+      var x = e.pageX - pos.x;
+      var y = e.pageY - pos.y;
+      var p = this.colorPickerContext.getImageData(x, y, 1, 1).data;
+      onColorChange(p);
+    });
 
     return new Promise(resolve => {
       this.bugImage = new Image();

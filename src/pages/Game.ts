@@ -4,6 +4,8 @@ export class Game {
 
   constructor(private gameUI: GameUI, private onGameDone) { }
 
+  public inProgress = false;
+
   private bugSectionInfo: BugSectionInfo = BugSectionInfo.NULL;
 
   private intervalId;
@@ -17,18 +19,16 @@ export class Game {
   }
 
   stop() {
+    this.inProgress = false;
     clearInterval(this.intervalId);
     this.intervalId = null;
     this.onGameDone(this.score)
   }
 
   start() {
+    this.inProgress = true;
     this.shufflesLeft = this.gameUI.gameLength;
     this.shuffleBug();
-  }
-
-  get gameFinished() {
-    return this.intervalId === null;
   }
 
   private shuffleBug() {
@@ -55,11 +55,13 @@ export class Game {
     }, this.gameUI.gameSpeed);
   }
 
-  draw = () => {
+  draw = (matches: Match[] = []) => {
     this.gameUI.clear();
+    matches.forEach(match => this.gameUI.drawMatch(match));
+
+    if (!this.inProgress) return;
+
     this.gameUI.buildSections();
-    if (!this.gameFinished) {
-      this.gameUI.drawBug(this.bugSectionInfo)
-    }
+    this.gameUI.drawBug(this.bugSectionInfo);
   }
 }
