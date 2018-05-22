@@ -219,8 +219,88 @@ init(onColorChange) {
   }
 ```
 
+6. Zabijanie robaka i zliczanie punktów (`git checkout v5.0-Kill-the-bug`)
+
+- klasa `Game` potrafi zliczac ile razy robak zostal zabity
+
+``` typescript
+  draw = (matches: Match[] = []) => {
+    this.gameUI.clear();
+    matches.forEach(match => this.gameUI.drawMatch(match));
+    this.gameUI.buildSections();
+
+    if (!this.inProgress) return;
+
+    this.gameUI.drawBug(this.bugSectionInfo);
+    if (matches.find(match => this.wasHit(match))) {
+      this.killBug();
+    }
+  }
+
+  killBug() {
+    this.bugSectionInfo.killed = true;
+    this.score += 1;
+  }
+
+  wasHit(match: Match) {
+    if (this.bugSectionInfo.killed) return false;
+
+    const matchSection = this.gameUI.toSection(match);
+
+    return matchSection.sectionX === this.bugSectionInfo.sectionX &&
+      matchSection.sectionY === this.bugSectionInfo.sectionY;
+  }
+```
+
+- dodatkowo na stronie dodano kilka parametrów gry
+
+``` html
+<!-- home.html -->
+  <ion-item *ngIf="game && game.inProgress">
+    Score:
+    <ion-badge item-end>{{game.score}} of {{gameUI.gameLength - game.shufflesLeft}} / {{gameUI.gameLength}}</ion-badge>
+    <ion-icon name="bug" item-end></ion-icon>
+  </ion-item>
+  <ion-item>
+    <ion-range min="0" pin="true" [max]="gameUI.calibrationRange" [(ngModel)]="gameUI.calibration" color="secondary">
+      <ion-label range-left>Calibrate: 0</ion-label>
+      <ion-label range-right>{{gameUI.calibrationRange}}</ion-label>
+    </ion-range>
+  </ion-item>
+  <ion-item>
+    <ion-range min="500" pin="true" [max]="2000" [(ngModel)]="gameUI.gameSpeed" color="secondary">
+      <ion-label range-left>Speed: 0.5s</ion-label>
+      <ion-label range-right>2s</ion-label>
+    </ion-range>
+  </ion-item>
+  <ion-item>
+    <ion-range min="8" pin="true" [max]="20" [(ngModel)]="gameUI.gameLength" color="secondary">
+      <ion-label range-left>Length: 8</ion-label>
+      <ion-label range-right>20</ion-label>
+    </ion-range>
+  </ion-item>
+```
+
+7. Instalacja na komórce
+
+- dodanie platformy
+
+> ionic cordova platform add android 
+
+- ustawienie wymaganych pozwolen do używania kamery w `platforms\android\AndroidManifest.xml`
+
+```xml
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.CAMERA" />
+```
+
+- instalacja na komórce
+
+> ionic cordova run android
+
 ## TODO:
 
+- https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 - Obczaj: Get Ionic DevApp for easy device testing: https://bit.ly/ionic-dev-app
 - `ionic serve -l --port 8200`
 - replace tag: `git tag -fa <tagname>`

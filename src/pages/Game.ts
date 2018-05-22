@@ -8,8 +8,6 @@ export class Game {
 
   private bugSectionInfo: BugSectionInfo = BugSectionInfo.NULL;
 
-  private intervalId;
-
   private score = 0;
 
   shufflesLeft: number = this.gameUI.gameLength;
@@ -20,8 +18,7 @@ export class Game {
 
   stop() {
     this.inProgress = false;
-    clearInterval(this.intervalId);
-    this.intervalId = null;
+    this.shufflesLeft = 0;
     this.onGameDone(this.score)
   }
 
@@ -34,34 +31,64 @@ export class Game {
   private shuffleBug() {
     let previousSectionX = null;
     let previousSectionY = null;
-    this.intervalId = setInterval(() => {
-      let sectionX;
-      let sectionY;
-      do {
-        sectionX = this.getBugPosition(0, this.gameUI.numSections - 1);
-        sectionY = this.getBugPosition(0, this.gameUI.numSections - 1);
+    let start = null;
+
+    const shuffle = function (timestamp) {
+
+      if (!start) start = timestamp - this.gameUI.gameSpeed;
+      const progress = timestamp - start;
+
+      if (progress + 30 >= this.gameUI.gameSpeed) {
+        start = timestamp;
+
+        let sectionX;
+        let sectionY;
+        do {
+          sectionX = this.getBugPosition(0, this.gameUI.numSections - 1);
+          sectionY = this.getBugPosition(0, this.gameUI.numSections - 1);
+        }
+        while (previousSectionX === sectionX && previousSectionY === sectionY);
+
+        previousSectionX = sectionX;
+        previousSectionY = sectionY;
+
+        this.bugSectionInfo = new BugSectionInfo(sectionX, sectionY);
+        this.shufflesLeft -= 1;
+        this.shufflesLeft === 0 && this.stop();;
       }
-      while (previousSectionX === sectionX && previousSectionY === sectionY);
 
-      previousSectionX = sectionX;
-      previousSectionY = sectionY;
-
-      this.bugSectionInfo = new BugSectionInfo(sectionX, sectionY);
-
-      this.shufflesLeft -= 1;
-      if (this.shufflesLeft === 0) {
-        this.stop();
+      if (this.shufflesLeft > 0) {
+        requestAnimationFrame(shuffle);
       }
-    }, this.gameUI.gameSpeed);
+    }.bind(this);
+
+    requestAnimationFrame(shuffle);
   }
 
   draw = (matches: Match[] = []) => {
     this.gameUI.clear();
     matches.forEach(match => this.gameUI.drawMatch(match));
+    this.gameUI.buildSections();
 
     if (!this.inProgress) return;
 
-    this.gameUI.buildSections();
     this.gameUI.drawBug(this.bugSectionInfo);
+    if (matches.find(match => this.wasHit(match))) {
+      this.killBug();
+    }
+  }
+
+  killBug() {
+    this.bugSectionInfo.killed = true;
+    this.score += 1;
+  }
+
+  wasHit(match: Match) {
+    if (this.bugSectionInfo.killed) return false;
+
+    const matchSection = this.gameUI.toSection(match);
+
+    return matchSection.sectionX === this.bugSectionInfo.sectionX &&
+      matchSection.sectionY === this.bugSectionInfo.sectionY;
   }
 }
