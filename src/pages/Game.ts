@@ -58,10 +58,27 @@ export class Game {
   draw = (matches: Match[] = []) => {
     this.gameUI.clear();
     matches.forEach(match => this.gameUI.drawMatch(match));
+    this.gameUI.buildSections();
 
     if (!this.inProgress) return;
 
-    this.gameUI.buildSections();
     this.gameUI.drawBug(this.bugSectionInfo);
+    if (matches.find(match => this.wasHit(match))) {
+      this.killBug();
+    }
+  }
+
+  killBug() {
+    this.bugSectionInfo.killed = true;
+    this.score += 1;
+  }
+
+  wasHit(match: Match) {
+    if (this.bugSectionInfo.killed) return false;
+
+    const matchSection = this.gameUI.toSection(match);
+
+    return matchSection.sectionX === this.bugSectionInfo.sectionX &&
+      matchSection.sectionY === this.bugSectionInfo.sectionY;
   }
 }

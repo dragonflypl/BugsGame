@@ -35,6 +35,10 @@ export class GameUI {
 
   public calibration = 0;
 
+  get calibrationRange() {
+    return Math.floor(this.width / 4);
+  }
+
   private get colorPickerContext() {
     return this.colorPickerCanvas.getContext('2d');
   }
