@@ -5,7 +5,7 @@
  * @link http://trackingjs.com
  * @license BSD
  */
-(function(window, undefined) {
+(function (window, undefined) {
   window.tracking = window.tracking || {};
 
   /**
@@ -28,9 +28,8 @@
    * @param {Function} childCtor Child class.
    * @param {Function} parentCtor Parent class.
    */
-  tracking.inherits = function(childCtor, parentCtor) {
-    function TempCtor() {
-    }
+  tracking.inherits = function (childCtor, parentCtor) {
+    function TempCtor() {}
     TempCtor.prototype = parentCtor.prototype;
     childCtor.superClass_ = parentCtor.prototype;
     childCtor.prototype = new TempCtor();
@@ -49,7 +48,7 @@
      *     method/constructor.
      * @return {*} The return value of the superclass method/constructor.
      */
-    childCtor.base = function(me, methodName) {
+    childCtor.base = function (me, methodName) {
       var args = Array.prototype.slice.call(arguments, 2);
       return parentCtor.prototype[methodName].apply(me, args);
     };
@@ -61,20 +60,23 @@
    * @param {HTMLVideoElement} element Canvas element to track.
    * @param {object} opt_options Optional configuration to the tracker.
    */
-  tracking.initUserMedia_ = function(element, opt_options) {
+  tracking.initUserMedia_ = function (element, opt_options) {
     window.navigator.getUserMedia({
-      video: true,
-      audio: !!(opt_options && opt_options.audio)
-    }, function(stream) {
-        try {
-          element.src = window.URL.createObjectURL(stream);
-        } catch (err) {
-          element.src = stream;
+      video: {
+        facingMode: {
+          exact: "environment"
         }
-      }, function() {
-        throw Error('Cannot capture user camera.');
+      },
+      audio: !!(opt_options && opt_options.audio)
+    }, function (stream) {
+      try {
+        element.src = window.URL.createObjectURL(stream);
+      } catch (err) {
+        element.src = stream;
       }
-    );
+    }, function () {
+      throw Error('Cannot capture user camera.');
+    });
   };
 
   /**
@@ -82,7 +84,7 @@
    * @param {object} o Object to be tested.
    * @return {boolean} True if the object is a dom node.
    */
-  tracking.isNode = function(o) {
+  tracking.isNode = function (o) {
     return o.nodeType || this.isWindow(o);
   };
 
@@ -91,7 +93,7 @@
    * @param {object} o Object to be tested.
    * @return {boolean} True if the object is the `window` object.
    */
-  tracking.isWindow = function(o) {
+  tracking.isWindow = function (o) {
     return !!(o && o.alert && o.document);
   };
 
@@ -103,7 +105,7 @@
    * @return {HTMLElement} The first dom element that matches to the selector.
    *     If not found, returns `null`.
    */
-  tracking.one = function(selector, opt_element) {
+  tracking.one = function (selector, opt_element) {
     if (this.isNode(selector)) {
       return selector;
     }
@@ -134,7 +136,7 @@
    *     element.
    * @param {object} opt_options Optional configuration to the tracker.
    */
-  tracking.track = function(element, tracker, opt_options) {
+  tracking.track = function (element, tracker, opt_options) {
     element = tracking.one(element);
     if (!element) {
       throw new Error('Element not found, try a different element or selector.');
@@ -170,10 +172,10 @@
    * @return {tracking.TrackerTask}
    * @private
    */
-  tracking.trackCanvas_ = function(element, tracker) {
+  tracking.trackCanvas_ = function (element, tracker) {
     var self = this;
     var task = new tracking.TrackerTask(tracker);
-    task.on('run', function() {
+    task.on('run', function () {
       self.trackCanvasInternal_(element, tracker);
     });
     return task.run();
@@ -189,7 +191,7 @@
    * @param {object} opt_options Optional configuration to the tracker.
    * @private
    */
-  tracking.trackCanvasInternal_ = function(element, tracker) {
+  tracking.trackCanvasInternal_ = function (element, tracker) {
     var width = element.width;
     var height = element.height;
     var context = element.getContext('2d');
@@ -207,7 +209,7 @@
    * @param {object} opt_options Optional configuration to the tracker.
    * @private
    */
-  tracking.trackImg_ = function(element, tracker) {
+  tracking.trackImg_ = function (element, tracker) {
     var width = element.width;
     var height = element.height;
     var canvas = document.createElement('canvas');
@@ -216,8 +218,8 @@
     canvas.height = height;
 
     var task = new tracking.TrackerTask(tracker);
-    task.on('run', function() {
-      tracking.Canvas.loadImage(canvas, element.src, 0, 0, width, height, function() {
+    task.on('run', function () {
+      tracking.Canvas.loadImage(canvas, element.src, 0, 0, width, height, function () {
         tracking.trackCanvasInternal_(canvas, tracker);
       });
     });
@@ -235,13 +237,13 @@
    * @param {object} opt_options Optional configuration to the tracker.
    * @private
    */
-  tracking.trackVideo_ = function(element, tracker) {
+  tracking.trackVideo_ = function (element, tracker) {
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
     var width;
     var height;
 
-    var resizeCanvas_ = function() {
+    var resizeCanvas_ = function () {
       width = element.offsetWidth;
       height = element.offsetHeight;
       canvas.width = width;
@@ -251,8 +253,8 @@
     element.addEventListener('resize', resizeCanvas_);
 
     var requestId;
-    var requestAnimationFrame_ = function() {
-      requestId = window.requestAnimationFrame(function() {
+    var requestAnimationFrame_ = function () {
+      requestId = window.requestAnimationFrame(function () {
         if (element.readyState === element.HAVE_ENOUGH_DATA) {
           try {
             // Firefox v~30.0 gets confused with the video readyState firing an
@@ -267,10 +269,10 @@
     };
 
     var task = new tracking.TrackerTask(tracker);
-    task.on('stop', function() {
+    task.on('stop', function () {
       window.cancelAnimationFrame(requestId);
     });
-    task.on('run', function() {
+    task.on('run', function () {
       requestAnimationFrame_();
     });
     return task.run();
@@ -285,16 +287,16 @@
 
   if (!navigator.getUserMedia) {
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-    navigator.mozGetUserMedia || navigator.msGetUserMedia;
+      navigator.mozGetUserMedia || navigator.msGetUserMedia;
   }
 }(window));
 
-(function() {
+(function () {
   /**
    * EventEmitter utility.
    * @constructor
    */
-  tracking.EventEmitter = function() {};
+  tracking.EventEmitter = function () {};
 
   /**
    * Holds event listeners scoped by event type.
@@ -309,7 +311,7 @@
    * @param {function} listener
    * @return {object} Returns emitter, so calls can be chained.
    */
-  tracking.EventEmitter.prototype.addListener = function(event, listener) {
+  tracking.EventEmitter.prototype.addListener = function (event, listener) {
     if (typeof listener !== 'function') {
       throw new TypeError('Listener must be a function');
     }
@@ -333,7 +335,7 @@
    * @param {string} event
    * @return {array} Array of listeners.
    */
-  tracking.EventEmitter.prototype.listeners = function(event) {
+  tracking.EventEmitter.prototype.listeners = function (event) {
     return this.events_ && this.events_[event];
   };
 
@@ -343,7 +345,7 @@
    * @param {*} opt_args [arg1], [arg2], [...]
    * @return {boolean} Returns true if event had listeners, false otherwise.
    */
-  tracking.EventEmitter.prototype.emit = function(event) {
+  tracking.EventEmitter.prototype.emit = function (event) {
     var listeners = this.listeners(event);
     if (listeners) {
       var args = Array.prototype.slice.call(arguments, 1);
@@ -372,7 +374,7 @@
    * @param {function} listener
    * @return {object} Returns emitter, so calls can be chained.
    */
-  tracking.EventEmitter.prototype.once = function(event, listener) {
+  tracking.EventEmitter.prototype.once = function (event, listener) {
     var self = this;
     self.on(event, function handlerInternal() {
       self.removeListener(event, handlerInternal);
@@ -387,7 +389,7 @@
    * @param {string} event
    * @return {object} Returns emitter, so calls can be chained.
    */
-  tracking.EventEmitter.prototype.removeAllListeners = function(opt_event) {
+  tracking.EventEmitter.prototype.removeAllListeners = function (opt_event) {
     if (!this.events_) {
       return this;
     }
@@ -406,7 +408,7 @@
    * @param {function} listener
    * @return {object} Returns emitter, so calls can be chained.
    */
-  tracking.EventEmitter.prototype.removeListener = function(event, listener) {
+  tracking.EventEmitter.prototype.removeListener = function (event, listener) {
     if (typeof listener !== 'function') {
       throw new TypeError('Listener must be a function');
     }
@@ -433,13 +435,13 @@
    * This function allows that to be increased. Set to zero for unlimited.
    * @param {number} n The maximum number of listeners.
    */
-  tracking.EventEmitter.prototype.setMaxListeners = function() {
+  tracking.EventEmitter.prototype.setMaxListeners = function () {
     throw new Error('Not implemented');
   };
 
 }());
 
-(function() {
+(function () {
   /**
    * Canvas utility.
    * @static
@@ -459,11 +461,11 @@
    *     into the canvas.
    * @static
    */
-  tracking.Canvas.loadImage = function(canvas, src, x, y, width, height, opt_callback) {
+  tracking.Canvas.loadImage = function (canvas, src, x, y, width, height, opt_callback) {
     var instance = this;
     var img = new window.Image();
     img.crossOrigin = '*';
-    img.onload = function() {
+    img.onload = function () {
       var context = canvas.getContext('2d');
       canvas.width = width;
       canvas.height = height;
@@ -477,7 +479,7 @@
   };
 }());
 
-(function() {
+(function () {
   /**
    * DisjointSet utility with path compression. Some applications involve
    * grouping n distinct objects into a collection of disjoint sets. Two
@@ -488,7 +490,7 @@
    * @static
    * @constructor
    */
-  tracking.DisjointSet = function(length) {
+  tracking.DisjointSet = function (length) {
     if (length === undefined) {
       throw new Error('DisjointSet length not specified.');
     }
@@ -516,7 +518,7 @@
    * @param {number} i
    * @return {number} The representative set of i.
    */
-  tracking.DisjointSet.prototype.find = function(i) {
+  tracking.DisjointSet.prototype.find = function (i) {
     if (this.parent[i] === i) {
       return i;
     } else {
@@ -530,7 +532,7 @@
    * @param {number} i
    * @param {number} j
    */
-  tracking.DisjointSet.prototype.union = function(i, j) {
+  tracking.DisjointSet.prototype.union = function (i, j) {
     var iRepresentative = this.find(i);
     var jRepresentative = this.find(j);
     this.parent[iRepresentative] = jRepresentative;
@@ -538,7 +540,7 @@
 
 }());
 
-(function() {
+(function () {
   /**
    * Image utility.
    * @static
@@ -555,7 +557,7 @@
    * @param {number} diameter Gaussian blur diameter, must be greater than 1.
    * @return {array} The edge pixels in a linear [r,g,b,a,...] array.
    */
-  tracking.Image.blur = function(pixels, width, height, diameter) {
+  tracking.Image.blur = function (pixels, width, height, diameter) {
     diameter = Math.abs(diameter);
     if (diameter <= 1) {
       throw new Error('Diameter should be greater than 1.');
@@ -601,7 +603,7 @@
    *     specified compute sobel filtering will be skipped.
    * @static
    */
-  tracking.Image.computeIntegralImage = function(pixels, width, height, opt_integralImage, opt_integralImageSquare, opt_tiltedIntegralImage, opt_integralImageSobel) {
+  tracking.Image.computeIntegralImage = function (pixels, width, height, opt_integralImage, opt_integralImageSquare, opt_tiltedIntegralImage, opt_integralImageSobel) {
     if (arguments.length < 4) {
       throw new Error('You should specify at least one output array in the order: sum, square, tilted, sobel.');
     }
@@ -647,7 +649,7 @@
    * @static
    * @private
    */
-  tracking.Image.computePixelValueRSAT_ = function(RSAT, width, i, j, pixel, pixelAbove) {
+  tracking.Image.computePixelValueRSAT_ = function (RSAT, width, i, j, pixel, pixelAbove) {
     var w = i * width + j;
     RSAT[w] = (RSAT[w - width - 1] || 0) + (RSAT[w - width + 1] || 0) - (RSAT[w - width - width] || 0) + pixel + pixelAbove;
   };
@@ -667,7 +669,7 @@
    * @static
    * @private
    */
-  tracking.Image.computePixelValueSAT_ = function(SAT, width, i, j, pixel) {
+  tracking.Image.computePixelValueSAT_ = function (SAT, width, i, j, pixel) {
     var w = i * width + j;
     SAT[w] = (SAT[w - width] || 0) + (SAT[w - 1] || 0) + pixel - (SAT[w - width - 1] || 0);
   };
@@ -687,7 +689,7 @@
    *  is true and [p1, p2, p3, ...] if fillRGBA is false).
    * @static
    */
-  tracking.Image.grayscale = function(pixels, width, height, fillRGBA) {
+  tracking.Image.grayscale = function (pixels, width, height, fillRGBA) {
     var gray = new Uint8ClampedArray(fillRGBA ? pixels.length : pixels.length >> 2);
     var p = 0;
     var w = 0;
@@ -723,7 +725,7 @@
    * @param {number} opaque
    * @return {array} The convoluted pixels in a linear [r,g,b,a,...] array.
    */
-  tracking.Image.horizontalConvolve = function(pixels, width, height, weightsVector, opaque) {
+  tracking.Image.horizontalConvolve = function (pixels, width, height, weightsVector, opaque) {
     var side = weightsVector.length;
     var halfSide = Math.floor(side / 2);
     var output = new Float32Array(width * height * 4);
@@ -772,7 +774,7 @@
    * @param {number} opaque
    * @return {array} The convoluted pixels in a linear [r,g,b,a,...] array.
    */
-  tracking.Image.verticalConvolve = function(pixels, width, height, weightsVector, opaque) {
+  tracking.Image.verticalConvolve = function (pixels, width, height, weightsVector, opaque) {
     var side = weightsVector.length;
     var halfSide = Math.floor(side / 2);
     var output = new Float32Array(width * height * 4);
@@ -822,7 +824,7 @@
    * @param {number} opaque
    * @return {array} The convoluted pixels in a linear [r,g,b,a,...] array.
    */
-  tracking.Image.separableConvolve = function(pixels, width, height, horizWeights, vertWeights, opaque) {
+  tracking.Image.separableConvolve = function (pixels, width, height, horizWeights, vertWeights, opaque) {
     var vertical = this.verticalConvolve(pixels, width, height, vertWeights, opaque);
     return this.horizontalConvolve(vertical, width, height, horizWeights, opaque);
   };
@@ -839,7 +841,7 @@
    * @param {number} height The image height.
    * @return {array} The edge pixels in a linear [r,g,b,a,...] array.
    */
-  tracking.Image.sobel = function(pixels, width, height) {
+  tracking.Image.sobel = function (pixels, width, height) {
     pixels = this.grayscale(pixels, width, height, true);
     var output = new Float32Array(width * height * 4);
     var sobelSignVector = new Float32Array([-1, 0, 1]);
@@ -862,7 +864,7 @@
 
 }());
 
-(function() {
+(function () {
   /**
    * ViolaJones utility.
    * @static
@@ -905,7 +907,7 @@
    * @return {array} Found rectangles.
    * @static
    */
-  tracking.ViolaJones.detect = function(pixels, width, height, initialScale, scaleFactor, stepSize, edgesDensity, data) {
+  tracking.ViolaJones.detect = function (pixels, width, height, initialScale, scaleFactor, stepSize, edgesDensity, data) {
     var total = 0;
     var rects = [];
     var integralImage = new Int32Array(width * height);
@@ -969,7 +971,7 @@
    * @static
    * @protected
    */
-  tracking.ViolaJones.isTriviallyExcluded = function(edgesDensity, integralImageSobel, i, j, width, blockWidth, blockHeight) {
+  tracking.ViolaJones.isTriviallyExcluded = function (edgesDensity, integralImageSobel, i, j, width, blockWidth, blockHeight) {
     var wbA = i * width + j;
     var wbB = wbA + blockWidth;
     var wbD = wbA + blockHeight * width;
@@ -996,7 +998,7 @@
    * @private
    * @static
    */
-  tracking.ViolaJones.evalStages_ = function(data, integralImage, integralImageSquare, tiltedIntegralImage, i, j, width, blockWidth, blockHeight, scale) {
+  tracking.ViolaJones.evalStages_ = function (data, integralImage, integralImageSquare, tiltedIntegralImage, i, j, width, blockWidth, blockHeight, scale) {
     var inverseArea = 1.0 / (blockWidth * blockHeight);
     var wbA = i * width + j;
     var wbB = wbA + blockWidth;
@@ -1012,7 +1014,7 @@
 
     var length = data.length;
 
-    for (var w = 2; w < length; ) {
+    for (var w = 2; w < length;) {
       var stageSum = 0;
       var stageThreshold = data[w++];
       var nodeLength = data[w++];
@@ -1082,7 +1084,7 @@
    * @private
    * @static
    */
-  tracking.ViolaJones.mergeRectangles_ = function(rects) {
+  tracking.ViolaJones.mergeRectangles_ = function (rects) {
     var disjointSet = new tracking.DisjointSet(rects.length);
 
     for (var i = 0; i < rects.length; i++) {
@@ -1127,7 +1129,7 @@
     }
 
     var result = [];
-    Object.keys(map).forEach(function(key) {
+    Object.keys(map).forEach(function (key) {
       var rect = map[key];
       result.push({
         total: rect.total,
@@ -1143,7 +1145,7 @@
 
 }());
 
-(function() {
+(function () {
   /**
    * Brief intends for "Binary Robust Independent Elementary Features".This
    * method generates a binary string for each keypoint found by an extractor
@@ -1191,7 +1193,7 @@
    *     to describe the corner, e.g. [0,0,0,0, 0,0,0,0, ...].
    * @static
    */
-  tracking.Brief.getDescriptors = function(pixels, width, keypoints) {
+  tracking.Brief.getDescriptors = function (pixels, width, keypoints) {
     // Optimizing divide by 32 operation using binary shift
     // (this.N >> 5) === this.N/32.
     var descriptors = new Int32Array((keypoints.length >> 1) * (this.N >> 5));
@@ -1248,7 +1250,7 @@
    *     the return array would be [3,0].
    * @static
    */
-  tracking.Brief.match = function(keypoints1, descriptors1, keypoints2, descriptors2) {
+  tracking.Brief.match = function (keypoints1, descriptors1, keypoints2, descriptors2) {
     var len1 = keypoints1.length >> 1;
     var len2 = keypoints2.length >> 1;
     var matches = new Array(len1);
@@ -1293,7 +1295,7 @@
    *     the return array would be [3,0].
    * @static
    */
-  tracking.Brief.reciprocalMatch = function(keypoints1, descriptors1, keypoints2, descriptors2) {
+  tracking.Brief.reciprocalMatch = function (keypoints1, descriptors1, keypoints2, descriptors2) {
     var matches = [];
     if (keypoints1.length === 0 || keypoints2.length === 0) {
       return matches;
@@ -1315,7 +1317,7 @@
    * @return {array} Array with the random offset values.
    * @private
    */
-  tracking.Brief.getRandomOffsets_ = function(width) {
+  tracking.Brief.getRandomOffsets_ = function (width) {
     if (!this.randomWindowOffsets_) {
       var windowPosition = 0;
       var windowOffsets = new Int32Array(4 * this.N);
@@ -1342,7 +1344,7 @@
   };
 }());
 
-(function() {
+(function () {
   /**
    * FAST intends for "Features from Accelerated Segment Test". This method
    * performs a point segment test corner detection. The segment test
@@ -1395,7 +1397,7 @@
    *     e.g. [x0,y0,x1,y1,...], where P(x0,y0) represents a corner coordinate.
    * @static
    */
-  tracking.Fast.findCorners = function(pixels, width, height, opt_threshold) {
+  tracking.Fast.findCorners = function (pixels, width, height, opt_threshold) {
     var circleOffsets = this.getCircleOffsets_(width);
     var circlePixels = new Int32Array(16);
     var corners = [];
@@ -1441,7 +1443,7 @@
    * @return {Boolean}
    * @static
    */
-  tracking.Fast.isBrighter = function(circlePixel, p, threshold) {
+  tracking.Fast.isBrighter = function (circlePixel, p, threshold) {
     return circlePixel - p > threshold;
   };
 
@@ -1454,7 +1456,7 @@
    * @return {Boolean}
    * @static
    */
-  tracking.Fast.isCorner = function(p, circlePixels, threshold) {
+  tracking.Fast.isCorner = function (p, circlePixels, threshold) {
     if (this.isTriviallyExcluded(circlePixels, p, threshold)) {
       return false;
     }
@@ -1498,7 +1500,7 @@
    * @return {Boolean}
    * @static
    */
-  tracking.Fast.isDarker = function(circlePixel, p, threshold) {
+  tracking.Fast.isDarker = function (circlePixel, p, threshold) {
     return p - circlePixel > threshold;
   };
 
@@ -1515,7 +1517,7 @@
    * @static
    * @protected
    */
-  tracking.Fast.isTriviallyExcluded = function(circlePixels, p, threshold) {
+  tracking.Fast.isTriviallyExcluded = function (circlePixels, p, threshold) {
     var count = 0;
     var circleBottom = circlePixels[8];
     var circleLeft = circlePixels[12];
@@ -1564,7 +1566,7 @@
    *     surrounding pixel.
    * @private
    */
-  tracking.Fast.getCircleOffsets_ = function(width) {
+  tracking.Fast.getCircleOffsets_ = function (width) {
     if (this.circles_[width]) {
       return this.circles_[width];
     }
@@ -1593,7 +1595,7 @@
   };
 }());
 
-(function() {
+(function () {
   /**
    * Math utility.
    * @static
@@ -1609,7 +1611,7 @@
    * @param {number} y1 Vertical coordinate of P1.
    * @return {number} The euclidean distance.
    */
-  tracking.Math.distance = function(x0, y0, x1, y1) {
+  tracking.Math.distance = function (x0, y0, x1, y1) {
     var dx = x1 - x0;
     var dy = y1 - y0;
 
@@ -1634,7 +1636,7 @@
    * @param {number} i Number that holds the binary string to extract the hamming weight.
    * @return {number} The hamming weight.
    */
-  tracking.Math.hammingWeight = function(i) {
+  tracking.Math.hammingWeight = function (i) {
     i = i - ((i >> 1) & 0x55555555);
     i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
 
@@ -1647,7 +1649,7 @@
    * @param {number} b
    * @return {number}
    */
-  tracking.Math.uniformRandom = function(a, b) {
+  tracking.Math.uniformRandom = function (a, b) {
     return a + Math.random() * (b - a);
   };
 
@@ -1670,13 +1672,13 @@
    * @param {number} y3 Vertical coordinate of P3.
    * @return {boolean}
    */
-  tracking.Math.intersectRect = function(x0, y0, x1, y1, x2, y2, x3, y3) {
+  tracking.Math.intersectRect = function (x0, y0, x1, y1, x2, y2, x3, y3) {
     return !(x2 > x1 || x3 < x0 || y2 > y1 || y3 < y0);
   };
 
 }());
 
-(function() {
+(function () {
   /**
    * Matrix utility.
    * @static
@@ -1699,7 +1701,7 @@
    *     is 1, hence loops all the pixels of the array.
    * @static
    */
-  tracking.Matrix.forEach = function(pixels, width, height, fn, opt_jump) {
+  tracking.Matrix.forEach = function (pixels, width, height, fn, opt_jump) {
     opt_jump = opt_jump || 1;
     for (var i = 0; i < height; i += opt_jump) {
       for (var j = 0; j < width; j += opt_jump) {
@@ -1711,7 +1713,7 @@
 
 }());
 
-(function() {
+(function () {
   /**
    * EPnp utility.
    * @static
@@ -1719,16 +1721,16 @@
    */
   tracking.EPnP = {};
 
-  tracking.EPnP.solve = function(objectPoints, imagePoints, cameraMatrix) {};
+  tracking.EPnP.solve = function (objectPoints, imagePoints, cameraMatrix) {};
 }());
 
-(function() {
+(function () {
   /**
    * Tracker utility.
    * @constructor
    * @extends {tracking.EventEmitter}
    */
-  tracking.Tracker = function() {
+  tracking.Tracker = function () {
     tracking.Tracker.base(this, 'constructor');
   };
 
@@ -1741,16 +1743,16 @@
    * @param {number} width The pixels canvas width.
    * @param {number} height The pixels canvas height.
    */
-  tracking.Tracker.prototype.track = function() {};
+  tracking.Tracker.prototype.track = function () {};
 }());
 
-(function() {
+(function () {
   /**
    * TrackerTask utility.
    * @constructor
    * @extends {tracking.EventEmitter}
    */
-  tracking.TrackerTask = function(tracker) {
+  tracking.TrackerTask = function (tracker) {
     tracking.TrackerTask.base(this, 'constructor');
 
     if (!tracker) {
@@ -1780,7 +1782,7 @@
    * Gets the tracker instance managed by this task.
    * @return {tracking.Tracker}
    */
-  tracking.TrackerTask.prototype.getTracker = function() {
+  tracking.TrackerTask.prototype.getTracker = function () {
     return this.tracker_;
   };
 
@@ -1789,7 +1791,7 @@
    * @return {boolean}
    * @private
    */
-  tracking.TrackerTask.prototype.inRunning = function() {
+  tracking.TrackerTask.prototype.inRunning = function () {
     return this.running_;
   };
 
@@ -1798,7 +1800,7 @@
    * @param {boolean} running
    * @private
    */
-  tracking.TrackerTask.prototype.setRunning = function(running) {
+  tracking.TrackerTask.prototype.setRunning = function (running) {
     this.running_ = running;
   };
 
@@ -1806,7 +1808,7 @@
    * Sets the tracker instance managed by this task.
    * @return {tracking.Tracker}
    */
-  tracking.TrackerTask.prototype.setTracker = function(tracker) {
+  tracking.TrackerTask.prototype.setTracker = function (tracker) {
     this.tracker_ = tracker;
   };
 
@@ -1815,7 +1817,7 @@
    * child action, e.g. `requestAnimationFrame`.
    * @return {object} Returns itself, so calls can be chained.
    */
-  tracking.TrackerTask.prototype.run = function() {
+  tracking.TrackerTask.prototype.run = function () {
     var self = this;
 
     if (this.inRunning()) {
@@ -1823,7 +1825,7 @@
     }
 
     this.setRunning(true);
-    this.reemitTrackEvent_ = function(event) {
+    this.reemitTrackEvent_ = function (event) {
       self.emit('track', event);
     };
     this.tracker_.on('track', this.reemitTrackEvent_);
@@ -1836,7 +1838,7 @@
    * child action being done, e.g. `requestAnimationFrame`.
    * @return {object} Returns itself, so calls can be chained.
    */
-  tracking.TrackerTask.prototype.stop = function() {
+  tracking.TrackerTask.prototype.stop = function () {
     if (!this.inRunning()) {
       return;
     }
@@ -1848,7 +1850,7 @@
   };
 }());
 
-(function() {
+(function () {
   /**
    * ColorTracker utility to track colored blobs in a frame using color
    * difference evaluation.
@@ -1856,7 +1858,7 @@
    * @param {string|Array.<string>} opt_colors Optional colors to track.
    * @extends {tracking.Tracker}
    */
-  tracking.ColorTracker = function(opt_colors) {
+  tracking.ColorTracker = function (opt_colors) {
     tracking.ColorTracker.base(this, 'constructor');
 
     if (typeof opt_colors === 'string') {
@@ -1864,7 +1866,7 @@
     }
 
     if (opt_colors) {
-      opt_colors.forEach(function(color) {
+      opt_colors.forEach(function (color) {
         if (!tracking.ColorTracker.getColor(color)) {
           throw new Error('Color not valid, try `new tracking.ColorTracker("magenta")`.');
         }
@@ -1898,7 +1900,7 @@
    *     the desired color.
    * @static
    */
-  tracking.ColorTracker.registerColor = function(name, fn) {
+  tracking.ColorTracker.registerColor = function (name, fn) {
     tracking.ColorTracker.knownColors_[name] = fn;
   };
 
@@ -1909,7 +1911,7 @@
    * @return {function} The known color test function.
    * @static
    */
-  tracking.ColorTracker.getColor = function(name) {
+  tracking.ColorTracker.getColor = function (name) {
     return tracking.ColorTracker.knownColors_[name];
   };
 
@@ -1952,7 +1954,7 @@
    *     the blog extracted from the cloud points.
    * @private
    */
-  tracking.ColorTracker.prototype.calculateDimensions_ = function(cloud, total) {
+  tracking.ColorTracker.prototype.calculateDimensions_ = function (cloud, total) {
     var maxx = -1;
     var maxy = -1;
     var minx = Infinity;
@@ -1988,7 +1990,7 @@
    * Gets the colors being tracked by the `ColorTracker` instance.
    * @return {Array.<string>}
    */
-  tracking.ColorTracker.prototype.getColors = function() {
+  tracking.ColorTracker.prototype.getColors = function () {
     return this.colors;
   };
 
@@ -1996,7 +1998,7 @@
    * Gets the minimum dimension to classify a rectangle.
    * @return {number}
    */
-  tracking.ColorTracker.prototype.getMinDimension = function() {
+  tracking.ColorTracker.prototype.getMinDimension = function () {
     return this.minDimension;
   };
 
@@ -2004,7 +2006,7 @@
    * Gets the maximum dimension to classify a rectangle.
    * @return {number}
    */
-  tracking.ColorTracker.prototype.getMaxDimension = function() {
+  tracking.ColorTracker.prototype.getMaxDimension = function () {
     return this.maxDimension;
   };
 
@@ -2012,7 +2014,7 @@
    * Gets the minimum group size to be classified as a rectangle.
    * @return {number}
    */
-  tracking.ColorTracker.prototype.getMinGroupSize = function() {
+  tracking.ColorTracker.prototype.getMinGroupSize = function () {
     return this.minGroupSize;
   };
 
@@ -2023,7 +2025,7 @@
    *     surrounding a pixel.
    * @private
    */
-  tracking.ColorTracker.prototype.getNeighboursForWidth_ = function(width) {
+  tracking.ColorTracker.prototype.getNeighboursForWidth_ = function (width) {
     if (tracking.ColorTracker.neighbours_[width]) {
       return tracking.ColorTracker.neighbours_[width];
     }
@@ -2049,7 +2051,7 @@
    * @param {Array.<Object>} rects
    * @private
    */
-  tracking.ColorTracker.prototype.mergeRectangles_ = function(rects) {
+  tracking.ColorTracker.prototype.mergeRectangles_ = function (rects) {
     var intersects;
     var results = [];
     var minDimension = this.getMinDimension();
@@ -2090,7 +2092,7 @@
    * Sets the colors to be tracked by the `ColorTracker` instance.
    * @param {Array.<string>} colors
    */
-  tracking.ColorTracker.prototype.setColors = function(colors) {
+  tracking.ColorTracker.prototype.setColors = function (colors) {
     this.colors = colors;
   };
 
@@ -2098,7 +2100,7 @@
    * Sets the minimum dimension to classify a rectangle.
    * @param {number} minDimension
    */
-  tracking.ColorTracker.prototype.setMinDimension = function(minDimension) {
+  tracking.ColorTracker.prototype.setMinDimension = function (minDimension) {
     this.minDimension = minDimension;
   };
 
@@ -2106,7 +2108,7 @@
    * Sets the maximum dimension to classify a rectangle.
    * @param {number} maxDimension
    */
-  tracking.ColorTracker.prototype.setMaxDimension = function(maxDimension) {
+  tracking.ColorTracker.prototype.setMaxDimension = function (maxDimension) {
     this.maxDimension = maxDimension;
   };
 
@@ -2114,7 +2116,7 @@
    * Sets the minimum group size to be classified as a rectangle.
    * @param {number} minGroupSize
    */
-  tracking.ColorTracker.prototype.setMinGroupSize = function(minGroupSize) {
+  tracking.ColorTracker.prototype.setMinGroupSize = function (minGroupSize) {
     this.minGroupSize = minGroupSize;
   };
 
@@ -2125,7 +2127,7 @@
    * @param {number} width The pixels canvas width.
    * @param {number} height The pixels canvas height.
    */
-  tracking.ColorTracker.prototype.track = function(pixels, width, height) {
+  tracking.ColorTracker.prototype.track = function (pixels, width, height) {
     var self = this;
     var colors = this.getColors();
 
@@ -2135,7 +2137,7 @@
 
     var results = [];
 
-    colors.forEach(function(color) {
+    colors.forEach(function (color) {
       results = results.concat(self.trackColor_(pixels, width, height, color));
     });
 
@@ -2154,7 +2156,7 @@
    * @param {string} color The color to be found
    * @private
    */
-  tracking.ColorTracker.prototype.trackColor_ = function(pixels, width, height, color) {
+  tracking.ColorTracker.prototype.trackColor_ = function (pixels, width, height, color) {
     var colorFn = tracking.ColorTracker.knownColors_[color];
     var currGroup = new Int32Array(pixels.length >> 2);
     var currGroupSize;
@@ -2230,7 +2232,7 @@
   // Default colors
   //===================
 
-  tracking.ColorTracker.registerColor('cyan', function(r, g, b) {
+  tracking.ColorTracker.registerColor('cyan', function (r, g, b) {
     var thresholdGreen = 50,
       thresholdBlue = 70,
       dx = r - 0,
@@ -2243,7 +2245,7 @@
     return dx * dx + dy * dy + dz * dz < 6400;
   });
 
-  tracking.ColorTracker.registerColor('magenta', function(r, g, b) {
+  tracking.ColorTracker.registerColor('magenta', function (r, g, b) {
     var threshold = 50,
       dx = r - 255,
       dy = g - 0,
@@ -2255,7 +2257,7 @@
     return dx * dx + dy * dy + dz * dz < 19600;
   });
 
-  tracking.ColorTracker.registerColor('yellow', function(r, g, b) {
+  tracking.ColorTracker.registerColor('yellow', function (r, g, b) {
     var threshold = 50,
       dx = r - 255,
       dy = g - 255,
@@ -2274,7 +2276,7 @@
   var neighboursJ = new Int32Array([0, 1, 1, 1, 0, -1, -1, -1]);
 }());
 
-(function() {
+(function () {
   /**
    * ObjectTracker utility.
    * @constructor
@@ -2282,7 +2284,7 @@
    *     object classifiers to track.
    * @extends {tracking.Tracker}
    */
-  tracking.ObjectTracker = function(opt_classifiers) {
+  tracking.ObjectTracker = function (opt_classifiers) {
     tracking.ObjectTracker.base(this, 'constructor');
 
     if (opt_classifiers) {
@@ -2291,7 +2293,7 @@
       }
 
       if (Array.isArray(opt_classifiers)) {
-        opt_classifiers.forEach(function(classifier, i) {
+        opt_classifiers.forEach(function (classifier, i) {
           if (typeof classifier === 'string') {
             opt_classifiers[i] = tracking.ViolaJones.classifiers[classifier];
           }
@@ -2340,7 +2342,7 @@
    * Gets the tracker HAAR classifiers.
    * @return {TypedArray.<number>}
    */
-  tracking.ObjectTracker.prototype.getClassifiers = function() {
+  tracking.ObjectTracker.prototype.getClassifiers = function () {
     return this.classifiers;
   };
 
@@ -2348,7 +2350,7 @@
    * Gets the edges density value.
    * @return {number}
    */
-  tracking.ObjectTracker.prototype.getEdgesDensity = function() {
+  tracking.ObjectTracker.prototype.getEdgesDensity = function () {
     return this.edgesDensity;
   };
 
@@ -2356,7 +2358,7 @@
    * Gets the initial scale to start the feature block scaling.
    * @return {number}
    */
-  tracking.ObjectTracker.prototype.getInitialScale = function() {
+  tracking.ObjectTracker.prototype.getInitialScale = function () {
     return this.initialScale;
   };
 
@@ -2364,7 +2366,7 @@
    * Gets the scale factor to scale the feature block.
    * @return {number}
    */
-  tracking.ObjectTracker.prototype.getScaleFactor = function() {
+  tracking.ObjectTracker.prototype.getScaleFactor = function () {
     return this.scaleFactor;
   };
 
@@ -2372,7 +2374,7 @@
    * Gets the block step size.
    * @return {number}
    */
-  tracking.ObjectTracker.prototype.getStepSize = function() {
+  tracking.ObjectTracker.prototype.getStepSize = function () {
     return this.stepSize;
   };
 
@@ -2383,7 +2385,7 @@
    * @param {number} width The pixels canvas width.
    * @param {number} height The pixels canvas height.
    */
-  tracking.ObjectTracker.prototype.track = function(pixels, width, height) {
+  tracking.ObjectTracker.prototype.track = function (pixels, width, height) {
     var self = this;
     var classifiers = this.getClassifiers();
 
@@ -2393,7 +2395,7 @@
 
     var results = [];
 
-    classifiers.forEach(function(classifier) {
+    classifiers.forEach(function (classifier) {
       results = results.concat(tracking.ViolaJones.detect(pixels, width, height, self.getInitialScale(), self.getScaleFactor(), self.getStepSize(), self.getEdgesDensity(), classifier));
     });
 
@@ -2406,7 +2408,7 @@
    * Sets the tracker HAAR classifiers.
    * @param {TypedArray.<number>} classifiers
    */
-  tracking.ObjectTracker.prototype.setClassifiers = function(classifiers) {
+  tracking.ObjectTracker.prototype.setClassifiers = function (classifiers) {
     this.classifiers = classifiers;
   };
 
@@ -2414,7 +2416,7 @@
    * Sets the edges density.
    * @param {number} edgesDensity
    */
-  tracking.ObjectTracker.prototype.setEdgesDensity = function(edgesDensity) {
+  tracking.ObjectTracker.prototype.setEdgesDensity = function (edgesDensity) {
     this.edgesDensity = edgesDensity;
   };
 
@@ -2422,7 +2424,7 @@
    * Sets the initial scale to start the block scaling.
    * @param {number} initialScale
    */
-  tracking.ObjectTracker.prototype.setInitialScale = function(initialScale) {
+  tracking.ObjectTracker.prototype.setInitialScale = function (initialScale) {
     this.initialScale = initialScale;
   };
 
@@ -2430,7 +2432,7 @@
    * Sets the scale factor to scale the feature block.
    * @param {number} scaleFactor
    */
-  tracking.ObjectTracker.prototype.setScaleFactor = function(scaleFactor) {
+  tracking.ObjectTracker.prototype.setScaleFactor = function (scaleFactor) {
     this.scaleFactor = scaleFactor;
   };
 
@@ -2438,7 +2440,7 @@
    * Sets the block step size.
    * @param {number} stepSize
    */
-  tracking.ObjectTracker.prototype.setStepSize = function(stepSize) {
+  tracking.ObjectTracker.prototype.setStepSize = function (stepSize) {
     this.stepSize = stepSize;
   };
 

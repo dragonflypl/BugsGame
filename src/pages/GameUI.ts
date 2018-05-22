@@ -35,6 +35,10 @@ export class GameUI {
 
   public calibration = 0;
 
+  get calibrationRange() {
+    return Math.floor(this.width / 4);
+  }
+
   private get colorPickerContext() {
     return this.colorPickerCanvas.getContext('2d');
   }
@@ -44,18 +48,18 @@ export class GameUI {
   }
 
   get gameSize() {
-    return this.height - this.calibration;
+    return this.width - this.calibration;
   }
 
   get sectionSize() {
     return this.gameSize / this.numSections;
   }
 
-  private get widthOffset() {
-    return (this.width - (this.sectionSize * this.numSections)) / 2;
+  private get heightOffset() {
+    return (this.height - (this.sectionSize * this.numSections)) / 2;
   }
 
-  private get heightOffset() {
+  private get widthOffset() {
     return this.calibration / 2
   }
 

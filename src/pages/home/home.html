@@ -10,11 +10,34 @@
     <canvas id="videoCanvas" width="{{gameUI.width}}" height="{{gameUI.height}}"></canvas>
     <canvas id="colorPickerCanvas" width="{{gameUI.width}}" height="{{gameUI.height}}"></canvas>
   </div>
+  <ion-item *ngIf="game && game.inProgress">
+    Score:
+    <ion-badge item-end>{{game.score}} of {{gameUI.gameLength - game.shufflesLeft}} / {{gameUI.gameLength}}</ion-badge>
+    <ion-icon name="bug" item-end></ion-icon>
+  </ion-item>
+  <button ion-button block *ngIf="game && !game.inProgress" (click)="start()">Start</button>
+  <button ion-button block color="danger" *ngIf="game && game.inProgress" (click)="stop()">Stop</button>
   <ion-item>
     Tracked color:
     <span [ngStyle]="{'background-color': videoTracker.hexColor}">&nbsp;&nbsp;&nbsp;</span>
     <ion-badge item-end>{{videoTracker.hexColor}}</ion-badge>
   </ion-item>
-  <button ion-button block *ngIf="game && !game.inProgress" (click)="start()">Start</button>
-  <button ion-button block color="danger" *ngIf="game && game.inProgress" (click)="stop()">Stop</button>
+  <ion-item>
+    <ion-range min="0" pin="true" [max]="gameUI.calibrationRange" [(ngModel)]="gameUI.calibration" color="secondary">
+      <ion-label range-left>Calibrate: 0</ion-label>
+      <ion-label range-right>{{gameUI.calibrationRange}}</ion-label>
+    </ion-range>
+  </ion-item>
+  <ion-item>
+    <ion-range min="500" pin="true" [max]="2000" [(ngModel)]="gameUI.gameSpeed" color="secondary">
+      <ion-label range-left>Speed: 0.5s</ion-label>
+      <ion-label range-right>2s</ion-label>
+    </ion-range>
+  </ion-item>
+  <ion-item>
+    <ion-range min="8" pin="true" [max]="20" [(ngModel)]="gameUI.gameLength" color="secondary">
+      <ion-label range-left>Length: 8</ion-label>
+      <ion-label range-right>20</ion-label>
+    </ion-range>
+  </ion-item>
 </ion-content>
